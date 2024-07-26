@@ -1,19 +1,19 @@
 """
-A linear program to jointly optimize investment decision for two people given constraints.
+A linear program to jointly optimize investment decision for a group of people given constraints. Each group have different constraints!
 Structure:
-    There are two people: m and p (we can call them mom and pop)
-    There are two investment options: i and g (we can call it interest-bearing and growth)
+    There are two people: m and p (we can call them mom and pop). Both and m and p are seniors. There is a third person n (non-senior).
+    There are two investment options: i and g (we can call it interest-bearing and growth) available to each person.
     The horizon is Y years. Currently, we are in year 0. Time (year) is indexed by y.
-    The objective is to minimize lifetime combined tax liability. There is no discounting of future tax liabilities.
+    The objective is to minimize lifetime combined tax liability. Future tax liabilities can be discounted by a factor, rho.
     Cash inflow or income sources are:
-        1. rental income from a shop (SR) and a home (HR). HR comes from a source, BS.
-        2. interest income I^i from interest-bearing debt
+        1. rental income from a shop (SR) and a home (HR). HR for (m and p) comes from BS of n (BS stands for basic salary).
+        2. interest income I^i comes from interest-bearing debt
     Cash outflow or expenses are:
         1. living expense made equal to SR and period-0 I^i. Any increases in expenses over time will be met by increases in SR
     Investment options:
         1. i: interest-bearing debt: this generates a cashflow of I^i
         2. g: growth investment: this does not generate cashflow but grows the corpus
-        3. The rate of growth is different for (i,g) and (m,p) and also varies over time. Captured by r.
+        3. The rate of growth is different for (i,g) and (m,p,n) and also varies over time. Captured by r.
     Taxation:
         1. total income includes SR, HR, I^i, I^g
         2. deductions include: fixed deductions (D^F), discretionary deductions (D), and 30% of rental income
@@ -81,11 +81,11 @@ SeniorPersons = ['m', 'p']
 Persons = SeniorPersons + ['n']
 Investments = ['i', 'g']
 Person_Investments = list(itertools.product(Persons, Investments))
-SAL_c = {y: round(52.8e5 * (1 + 0.1) ** y, -2) for y in range(Y)} # 10% growth in salary
+SAL_c = {y: round(30e5 * (1 + 0.1) ** y, -2) for y in range(Y)} # 10% growth in salary
 BS_c = {y: 0.4*SAL_c[y] for y in range(Y)} # 40% of salary as BS
-SR_c = {y: round(1.74e5 * (1 + 0.1) ** y, -2) for y in range(Y)} # 10% growth in shop rental income
-DF_lim = {'m': 1e5, 'p': 1e5, 'n': 0.6e5}  # fixed deductions limit (0.5e5 std ded and 0.1e5/0.5e5 TTA)
-D_lim = {'m': 3.25e5, 'p': 3.25e5, 'n': 2.85e5}  # total deductions limit (fixed dec + 2e5 80C/CCD-1B, 0.25e5 80D)
+SR_c = {y: round(1.74e5 * (1 + 0.1) ** y, -2) for y in range(Y)} # assume 10% growth in shop rental income
+DF_lim = {'m': 0.5e5, 'p': 0.5e5, 'n': 0.5e5}  # fixed deductions limit (0.5e5 TTA for m/p and 0.5e5 std_ded for n)
+D_lim = {'m': 3e5, 'p': 3e5, 'n': 2.75e5}  # total deductions limit (fixed dec + 2e5 80C/CCD-1B, 0.25e5/0.5e5 80D)
 DD_lim = {p: D_lim[p]-DF_lim[p] for p in Persons}  # discretionary deductions limit
 A0 = {
     'm': {'i': 20e5, 'g': 11.595e5},
